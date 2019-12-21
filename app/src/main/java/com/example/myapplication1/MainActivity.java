@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -44,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
             public void convert(BaseViewHolder holder, Note note) {
                 holder.setText(R.id.notetitle,note.getTitle());
                 holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent()));
+                holder.setText(R.id.time2,note.getCurTimestr());
+
+
             }
 
             @Override
@@ -69,8 +74,11 @@ public class MainActivity extends AppCompatActivity {
                 holder.setOnCreateContextMenuListener(holder.getItemView());
             }
         };
+
         recyclerView.setAdapter(noteBaseRecyclerAdapter);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        StaggeredGridLayoutManager staggeredGridLayoutManager=new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+
         SpacesItemDecoration decoration = new SpacesItemDecoration(12);
         recyclerView.addItemDecoration(decoration);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -180,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("get_status","load all ok");
     }
 
-    private void loadNotes(){
+    private void loadNotes (){
         for(Note note:NoteModel.noteList) {
             FileInputStream in;
             BufferedReader reader = null;
@@ -189,12 +197,15 @@ public class MainActivity extends AppCompatActivity {
                 in = openFileInput(note.getLoc());
                 reader = new BufferedReader(new InputStreamReader(in));
                 note.setTitle(reader.readLine());
+                note.setCurTime(reader.readLine());
                 String line;
                 while ((line = reader.readLine()) != null) {
+
                     content.append(line);
+                    content.append("\n");
                 }
                 note.setContent(content.toString());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 if (reader != null) {

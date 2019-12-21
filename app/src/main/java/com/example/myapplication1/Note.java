@@ -3,21 +3,51 @@ package com.example.myapplication1;
 import android.util.Log;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 public class Note implements Serializable {
     private String title;
     private String content;
     private static long cnt=-1;
     private String loc;
+
+    private Date curTime;
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
     public Note() {
     cnt++;
     loc="note_"+cnt;
+    curTime=new Date(System.currentTimeMillis());
+    }
+
+    public Date getCurTime() {
+        return curTime;
+    }
+
+    public void setCurTime(Date curTime) {
+        this.curTime = curTime;
+    }
+
+    public void setCurTime(String curTime) throws ParseException {
+        this.curTime = simpleDateFormat.parse(curTime);
+    }
+
+    public static SimpleDateFormat getSimpleDateFormat() {
+        return simpleDateFormat;
     }
 
     public Note(String title, String content) {
         this.title = title;
         this.content = content;
     }
+
+    public String getCurTimestr() {
+        return simpleDateFormat.format(curTime);
+    }
+
+
 
     public static long getCnt() {
         return cnt;

@@ -5,20 +5,22 @@
     android:id="@+id/Constraintlayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gainsboro">
+    android:background="@color/gainsboro"
+    android:fitsSystemWindows="true"
+    >
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
+        android:fitsSystemWindows="true"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
+
+        app:layout_constraintBottom_toTopOf="@id/recyclerview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/recyclerview"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview"
@@ -29,11 +31,12 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+
+        />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"
