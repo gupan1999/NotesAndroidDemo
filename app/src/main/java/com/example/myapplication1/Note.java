@@ -19,6 +19,7 @@ public class Note implements Serializable {
     public Note() {
     cnt++;
     loc="note_"+cnt;
+    Log.d("loctest",loc);
     curTime=new Date(System.currentTimeMillis());
     }
 

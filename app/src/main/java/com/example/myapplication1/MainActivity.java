@@ -179,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 if (reader != null) {
                     try {
                         reader.close();
+                        Log.d("file","closed");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

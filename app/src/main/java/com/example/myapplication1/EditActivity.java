@@ -1,5 +1,6 @@
 package com.example.myapplication1;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -39,8 +40,13 @@ public class EditActivity extends AppCompatActivity {
     private int index;
     private TextView time;
     private Toolbar toolbar;
+    private boolean saved=false;
+    private boolean delete=false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("Lifecycle","onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
         toolbar=findViewById(R.id.toolbar3);
@@ -79,14 +85,13 @@ public class EditActivity extends AppCompatActivity {
                         new MaterialAlertDialogBuilder(EditActivity.this)
                                 .setTitle("删除")
                                 .setMessage("将删除此页")
-
                                 .setPositiveButton("删除", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        NoteModel.noteList.remove(note);
-                                        MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-                                        MainActivity.noteBaseRecyclerAdapter.notifyItemRemoved(index);
-                                        new File(note.getLoc()).delete();
+                                        if(status.equals("saved note")) {
+                                            delete = true;
+                                        }
+
                                         finish();
                                     }
                                 })
@@ -110,14 +115,47 @@ public class EditActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu2, menu);
         return true;
     }
+
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        Log.d("Lifecylce","onSaveInstanceState");
+        if (!saved) {
+            save();
+            saved = true;
+        }
+        super.onSaveInstanceState(outState);
+    }
+
     @Override
     protected void onStop() {
-        save();
+        Log.d("Lifecycle","onStop");
         super.onStop();
     }
 
     @Override
+    protected void onRestart() {
+        Log.d("Lifecycle","onRestart");
+        if(!saved)status="saved note";
+        saved=false;
+
+
+        savedTitle=note.getTitle();
+        savedContent=note.getContent();
+        super.onRestart();
+    }
+
+    @Override
+    protected void onStart() {
+
+        super.onStart();
+    }
+
+    @Override
     protected void onDestroy() {
+        Log.d("Lifecycle","onDestroy");
+        if(!saved) save();
+        if(delete)deleteNote();
         super.onDestroy();
     }
 
@@ -129,54 +167,63 @@ public class EditActivity extends AppCompatActivity {
         //final String loc=note.getLoc();
         if(status.equals("new note")){
             if(title.equals("")&&content.equals(""))return;
-            else {
+            else if(!title.equals(savedTitle)||!content.equals(savedContent)){
                 note.setTitle(title);
                 note.setCurTime(curTime);
                 note.setContent(content);
                 Toast.makeText(this, "已保存",
                         Toast.LENGTH_SHORT).show();
+
                 NoteModel.noteList.add(note);
                 NoteModel.sortByLastEditTime();
                 MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-                //MainActivity.noteBaseRecyclerAdapter.notifyItemChanged(index);
-                saveNote(title,note.getCurTimestr(),content);
+
+                saveNote();
 
             }
         }else if(status.equals("saved note")){
             if(title.equals("")&&content.equals("")) {
-                NoteModel.noteList.remove(note);
-                MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-                //MainActivity.noteBaseRecyclerAdapter.notifyItemRemoved(index);
-                new File(note.getLoc()).delete();
-                Toast.makeText(this, "已删除空白",
-                                      Toast.LENGTH_SHORT).show();
-            }
+                delete=true;
+                }
             else if(!title.equals(savedTitle)||!content.equals(savedContent)){
                 note.setTitle(title);
                 note.setContent(content);
                 note.setCurTime(curTime);
                 NoteModel.sortByLastEditTime();
                 MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-                //MainActivity.noteBaseRecyclerAdapter.notifyItemChanged(index);
+
                 Toast.makeText(this, "已保存",
                         Toast.LENGTH_SHORT).show();
-                saveNote(title,note.getCurTimestr(),content);
+                saveNote();
 
             }
         }
 
 
     }
-
-    private void saveNote(String title,String time,String content){
+    private void deleteNote(){
+        NoteModel.noteList.remove(note);
+        MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
+        File file =new File(note.getLoc());
+        Log.d("loctest","file:"+note.getLoc());
+        boolean result=file.delete();
+        if(result) {
+            Toast.makeText(this, "删除成功",
+                    Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(EditActivity.this, "删除文件失败",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void saveNote(){
         FileOutputStream out;
         BufferedWriter writer = null;
         try {
             out = openFileOutput(note.getLoc(), Context.MODE_PRIVATE);
             writer = new BufferedWriter(new OutputStreamWriter(out));
-            writer.write(title+"\n");
-            writer.write(time+"\n");
-            writer.write(content);
+            writer.write(note.getTitle()+"\n");
+            writer.write(note.getCurTimestr()+"\n");
+            writer.write(note.getContent());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
