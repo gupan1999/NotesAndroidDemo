@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,9 +42,10 @@ public class EditActivity extends AppCompatActivity {
     private int index;
     private TextView time;
     private Toolbar toolbar;
+    private boolean needsave=false;
     private boolean saved=false;
     private boolean delete=false;
-
+    private TextWatcher textWatcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,7 @@ public class EditActivity extends AppCompatActivity {
         toolbar=findViewById(R.id.toolbar3);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
         status = getIntent().getStringExtra("status");
         titleET=findViewById(R.id.editText3);
         contentET=findViewById(R.id.editText2);
@@ -69,6 +73,33 @@ public class EditActivity extends AppCompatActivity {
         savedContent=note.getContent();
         titleET.setText(savedTitle);
         contentET.setText(savedContent);
+        contentET.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                //EditActivity.this.toolbar.getMenu().removeItem(R.id.Item1);
+                EditActivity.this.toolbar.getMenu().removeItem(R.id.Item0);
+                EditActivity.this.toolbar.inflateMenu(R.menu.menu3);
+            }
+        });
+        textWatcher=new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+
+            }
+        };
+        titleET.addTextChangedListener(textWatcher);
+        contentET.addTextChangedListener(textWatcher);
         //Toast.makeText(this, status+index,
        //         Toast.LENGTH_SHORT).show();
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -81,6 +112,7 @@ public class EditActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
+                    /*
                     case R.id.Item1:
                         new MaterialAlertDialogBuilder(EditActivity.this)
                                 .setTitle("删除")
@@ -90,7 +122,7 @@ public class EditActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         if(status.equals("saved note")) {
                                             delete = true;
-                                        }
+                                    }
 
                                         finish();
                                     }
@@ -98,10 +130,15 @@ public class EditActivity extends AppCompatActivity {
                                 .setNegativeButton("取消",null)
                                 .show();
                         return true;
+                        */
+
                     case R.id.Item0:
                         titleET.setText("");
                         contentET.setText("");
                         return true;
+                    case R.id.Item2:
+                         if(EditActivity.this.titleET.getText().toString().equals("")&&EditActivity.this.titleET.getText().toString().equals(""))
+                             delete=true;
                     }
 
 
@@ -113,17 +150,18 @@ public class EditActivity extends AppCompatActivity {
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu2, menu);
+
         return true;
     }
+
 
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         Log.d("Lifecylce","onSaveInstanceState");
-        if (!saved) {
-            save();
-            saved = true;
-        }
+        if (!saved) save();
+
+
         super.onSaveInstanceState(outState);
     }
 
@@ -136,10 +174,8 @@ public class EditActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         Log.d("Lifecycle","onRestart");
-        if(!saved)status="saved note";
+        if(saved)status="saved note";
         saved=false;
-
-
         savedTitle=note.getTitle();
         savedContent=note.getContent();
         super.onRestart();
@@ -168,6 +204,7 @@ public class EditActivity extends AppCompatActivity {
         if(status.equals("new note")){
             if(title.equals("")&&content.equals(""))return;
             else if(!title.equals(savedTitle)||!content.equals(savedContent)){
+                saved=true;
                 note.setTitle(title);
                 note.setCurTime(curTime);
                 note.setContent(content);
@@ -175,7 +212,7 @@ public class EditActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
 
                 NoteModel.noteList.add(note);
-                NoteModel.sortByLastEditTime();
+                NoteModel.sortByLastEditTime(NoteModel.noteList);
                 MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
 
                 saveNote();
@@ -184,12 +221,14 @@ public class EditActivity extends AppCompatActivity {
         }else if(status.equals("saved note")){
             if(title.equals("")&&content.equals("")) {
                 delete=true;
+                saved = true;
                 }
             else if(!title.equals(savedTitle)||!content.equals(savedContent)){
+                saved = true;
                 note.setTitle(title);
                 note.setContent(content);
                 note.setCurTime(curTime);
-                NoteModel.sortByLastEditTime();
+                NoteModel.sortByLastEditTime(NoteModel.noteList);
                 MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
 
                 Toast.makeText(this, "已保存",

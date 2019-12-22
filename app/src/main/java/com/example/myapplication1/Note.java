@@ -13,7 +13,8 @@ public class Note implements Serializable {
     private String content;
     private static long cnt=-1;
     private String loc;
-
+    private int searchIndexTitle=0;
+    private int searchIndexContent=0;
     private Date curTime;
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
     public Note() {
@@ -21,6 +22,22 @@ public class Note implements Serializable {
     loc="note_"+cnt;
     Log.d("loctest",loc);
     curTime=new Date(System.currentTimeMillis());
+    }
+
+    public int getSearchIndexTitle() {
+        return searchIndexTitle;
+    }
+
+    public void setSearchIndexTitle(int searchIndexTitle) {
+        this.searchIndexTitle = searchIndexTitle;
+    }
+
+    public int getSearchIndexContent() {
+        return searchIndexContent;
+    }
+
+    public void setSearchIndexContent(int searchIndexContent) {
+        this.searchIndexContent = searchIndexContent;
     }
 
     public Date getCurTime() {

@@ -1,7 +1,7 @@
 package com.example.myapplication1;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -12,10 +12,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
+import android.view.View;
+import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.io.BufferedReader;
@@ -25,12 +25,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private FloatingActionButton floatingActionButton;
     private RecyclerView recyclerView;
     public static BaseRecyclerAdapter<Note>noteBaseRecyclerAdapter;
     private Toolbar toolbar;
+    public static SearchView searchView;
+    public static boolean searching=false;
+    public static SearchView.OnQueryTextListener onQueryTextListener;
+    SearchView.OnCloseListener onCloseListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,17 +44,18 @@ public class MainActivity extends AppCompatActivity {
         toolbar=findViewById(R.id.toolbar);
 
         setSupportActionBar(toolbar);
+
         recyclerView=findViewById(R.id.recyclerview);
         floatingActionButton=findViewById(R.id.floatingActionButton);
+
         loadAll();
         noteBaseRecyclerAdapter=new BaseRecyclerAdapter<Note>(this,R.layout.item,NoteModel.noteList) {
             @Override
             public void convert(BaseViewHolder holder, Note note) {
                 holder.setText(R.id.notetitle,note.getTitle());
-                holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent()));
                 holder.setText(R.id.time2,note.getCurTimestr());
-
-
+                if(!searching) holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),0));
+                else holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),note.getSearchIndexContent()));
             }
 
             @Override
@@ -56,11 +63,16 @@ public class MainActivity extends AppCompatActivity {
                 holder.getItemView().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent=new Intent(MainActivity.this,EditActivity.class);
+
+                        Intent intent=new Intent(MainActivity.this,SavedNoteActivity.class);
                         intent.putExtra("index",holder.getAdapterPosition());
                         //intent.putExtra("note",noteBaseRecyclerAdapter.getmDataByPosition(holder.getAdapterPosition()));
-                        intent.putExtra("status","saved note");
+                        //intent.putExtra("status","saved note");
                         startActivity(intent);
+                        //SavedNoteFragment savedNoteFragment=new SavedNoteFragment(holder.getAdapterPosition());
+                        //FragmentManager fragmentManager=getSupportFragmentManager();
+                        //FragmentTransaction transaction = fragmentManager.beginTransaction();
+                        //transaction.add(R.id.recyclerview,savedNoteFragment);
                     }
 
                 });
@@ -73,35 +85,76 @@ public class MainActivity extends AppCompatActivity {
                 });
                 holder.setOnCreateContextMenuListener(holder.getItemView());
             }
-        };
+         };
 
         recyclerView.setAdapter(noteBaseRecyclerAdapter);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        StaggeredGridLayoutManager staggeredGridLayoutManager=new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-
         SpacesItemDecoration decoration = new SpacesItemDecoration(12);
         recyclerView.addItemDecoration(decoration);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent(MainActivity.this,EditActivity.class);
-                //intent.putExtra("cnt",NoteModel.noteList.size()-1);
-                intent.putExtra("status","new note");
-                //intent.putExtra("note",note);
+                Intent intent=new Intent(MainActivity.this,NewNoteActivity.class);
+                //intent.putExtra("status","new note");
                 intent.putExtra("index",NoteModel.noteList.size()-1);
                 startActivity(intent);
-
             }
         });
+        NoteModel.curList=NoteModel.noteList;
+        onCloseListener=new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searching=false;
+                return false;
+            }
+        };
+        onQueryTextListener=new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searching=false;
+                return false;
+            }
 
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searching=true;
+                List<Note>tempList=new ArrayList<Note>();
+                for(Note note:NoteModel.noteList){
+                    String content=note.getContent();
+                    String title=note.getTitle();
+                    if(content.contains(newText)||title.contains(newText)){
+                        if(title.contains(newText))note.setSearchIndexTitle(title.indexOf(newText));
+                        if(content.contains(newText)) note.setSearchIndexContent(content.indexOf(newText));
+                        tempList.add(note);
+                    }
+                }
+                NoteModel.curList=tempList;
+                NoteModel.sortByLastEditTime(NoteModel.curList);
+                noteBaseRecyclerAdapter.setmData(NoteModel.curList);
+                noteBaseRecyclerAdapter.notifyDataSetChanged();
+                return false;
+            }
+        };
     }
+
+
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if(item.getItemId()==R.id.remove){
-            NoteModel.noteList.remove(noteBaseRecyclerAdapter.getmDataByPosition(noteBaseRecyclerAdapter.getPosition()));
+            Note note=noteBaseRecyclerAdapter.getmDataByPosition(noteBaseRecyclerAdapter.getPosition());
+            NoteModel.noteList.remove(note);
+            NoteModel.curList.remove(note);
             noteBaseRecyclerAdapter.notifyItemRemoved(noteBaseRecyclerAdapter.getPosition());  //移除item
             noteBaseRecyclerAdapter.notifyItemRangeChanged(noteBaseRecyclerAdapter.getPosition(),noteBaseRecyclerAdapter.getItemCount());  //正确删除后的动画效果
+            boolean result= getDir(note.getLoc(),MODE_PRIVATE).delete();
+            if(result) {
+                Toast.makeText(this, "删除成功",
+                        Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this, "删除文件失败",
+                        Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
         return false;
@@ -109,13 +162,20 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu1, menu);
+        MenuItem searchItem = menu.findItem(R.id.app_bar_search);
+        searchView=(SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(onQueryTextListener);
         return true;
     }
 
     @Override
-    protected void onResume() {
-        Log.d("notify","onResume");
+    protected void onRestart() {
 
+        super.onRestart();
+    }
+
+    @Override
+    protected void onResume() {
         super.onResume();
     }
 
