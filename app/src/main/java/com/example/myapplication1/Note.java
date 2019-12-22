@@ -1,7 +1,6 @@
 package com.example.myapplication1;
 
 import android.util.Log;
-
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,6 +15,7 @@ public class Note implements Serializable {
     private int searchIndexTitle=0;
     private int searchIndexContent=0;
     private Date curTime;
+
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
     public Note() {
     cnt++;
@@ -65,8 +65,6 @@ public class Note implements Serializable {
         return simpleDateFormat.format(curTime);
     }
 
-
-
     public static long getCnt() {
         return cnt;
     }
@@ -78,9 +76,11 @@ public class Note implements Serializable {
     public String getLoc() {
         return loc;
     }
+
     public void setLoc(String loc){
         this.loc=loc;
     }
+
     public String getTitle() {
         return title;
     }

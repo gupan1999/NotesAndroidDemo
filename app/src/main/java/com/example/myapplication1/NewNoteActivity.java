@@ -3,7 +3,6 @@ package com.example.myapplication1;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +12,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,6 +30,7 @@ public class NewNoteActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private boolean saved=false;
     private boolean delete=false;
+    private int cnt=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +93,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
     @Override
     protected void onRestart() {
+        cnt++;
         saved=false;
         savedTitle=note.getTitle();
         savedContent=note.getContent();
@@ -132,13 +131,12 @@ public class NewNoteActivity extends AppCompatActivity {
             note.setContent(content);
             Toast.makeText(this, "已保存",
                     Toast.LENGTH_SHORT).show();
-            NoteModel.noteList.add(note);
-            NoteModel.curList.add(note);
+            if(cnt==0) NoteModel.noteList.add(note);
             NoteModel.sortByLastEditTime(NoteModel.noteList);
-            NoteModel.sortByLastEditTime(NoteModel.curList);
             MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
             saveNote();
         }
+
     }
 
     private void saveNote(){
@@ -165,7 +163,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private void deleteNote(){
         NoteModel.noteList.remove(note);
-        NoteModel.curList.remove(note);
+
         MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
         //File file =new File(note.getLoc());
 

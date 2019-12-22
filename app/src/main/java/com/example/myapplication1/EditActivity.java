@@ -1,5 +1,5 @@
 package com.example.myapplication1;
-
+/*
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -130,7 +130,7 @@ public class EditActivity extends AppCompatActivity {
                                 .setNegativeButton("取消",null)
                                 .show();
                         return true;
-                        */
+
 
                     case R.id.Item0:
                         titleET.setText("");
@@ -279,3 +279,4 @@ public class EditActivity extends AppCompatActivity {
 }
 
 
+*/

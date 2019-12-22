@@ -62,10 +62,6 @@ public abstract class BaseRecyclerAdapter<T> extends RecyclerView.Adapter<BaseVi
     public int getItemCount() {
         return mData!=null?mData.size():0;
     }
-    public void updateItems(List<T>newList){
-        mData=newList;
-    }
-
 
 
 

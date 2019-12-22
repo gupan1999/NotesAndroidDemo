@@ -1,6 +1,5 @@
 package com.example.myapplication1;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
@@ -9,14 +8,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import android.view.View;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -52,10 +53,16 @@ public class MainActivity extends AppCompatActivity {
         noteBaseRecyclerAdapter=new BaseRecyclerAdapter<Note>(this,R.layout.item,NoteModel.noteList) {
             @Override
             public void convert(BaseViewHolder holder, Note note) {
-                holder.setText(R.id.notetitle,note.getTitle());
+
                 holder.setText(R.id.time2,note.getCurTimestr());
-                if(!searching) holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),0));
-                else holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),note.getSearchIndexContent()));
+                if(!searching){
+                    holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),0));
+                    holder.setText(R.id.notetitle,note.getTitle());
+                }
+                else {
+                    strengthCutText(note.getContent(),searchView.getQuery().toString(),note.getSearchIndexContent(),(TextView) holder.getView(R.id.notecontent));
+                    strengthCutText(note.getTitle(),searchView.getQuery().toString(),note.getSearchIndexTitle(),(TextView) holder.getView(R.id.notetitle));
+                }
             }
 
             @Override
@@ -63,19 +70,12 @@ public class MainActivity extends AppCompatActivity {
                 holder.getItemView().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         Intent intent=new Intent(MainActivity.this,SavedNoteActivity.class);
                         intent.putExtra("index",holder.getAdapterPosition());
-                        //intent.putExtra("note",noteBaseRecyclerAdapter.getmDataByPosition(holder.getAdapterPosition()));
-                        //intent.putExtra("status","saved note");
                         startActivity(intent);
-                        //SavedNoteFragment savedNoteFragment=new SavedNoteFragment(holder.getAdapterPosition());
-                        //FragmentManager fragmentManager=getSupportFragmentManager();
-                        //FragmentTransaction transaction = fragmentManager.beginTransaction();
-                        //transaction.add(R.id.recyclerview,savedNoteFragment);
                     }
-
                 });
+
                 holder.getItemView().setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {                       //设置长按监听，只为获取选中的ViewHolder的位置
@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(MainActivity.this,NewNoteActivity.class);
-                //intent.putExtra("status","new note");
                 intent.putExtra("index",NoteModel.noteList.size()-1);
                 startActivity(intent);
             }
@@ -111,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
         onQueryTextListener=new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                searching=false;
                 return false;
             }
 
@@ -119,9 +117,10 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 searching=true;
                 List<Note>tempList=new ArrayList<Note>();
+                newText=newText.toLowerCase();
                 for(Note note:NoteModel.noteList){
-                    String content=note.getContent();
-                    String title=note.getTitle();
+                    String content=note.getContent().toLowerCase();
+                    String title=note.getTitle().toLowerCase();
                     if(content.contains(newText)||title.contains(newText)){
                         if(title.contains(newText))note.setSearchIndexTitle(title.indexOf(newText));
                         if(content.contains(newText)) note.setSearchIndexContent(content.indexOf(newText));
@@ -160,23 +159,26 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    private void strengthCutText(String text,String key,int begin,TextView textView){
+        key=key.toLowerCase();
+        String result=NoteModel.cutTextShowed( text,begin);
+        if(text.contains(key)){
+        SpannableStringBuilder ssbuilder = new SpannableStringBuilder(result);
+        ForegroundColorSpan span = new ForegroundColorSpan(getResources().getColor(R.color.dodgerblue));
+        int strengthBegin=result.indexOf(key);
+        int strengthEnd=strengthBegin+key.length();
+        ssbuilder.setSpan(span,strengthBegin,strengthEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textView.setText(ssbuilder);
+        }else {
+            textView.setText(result);
+        }
+    }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu1, menu);
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
         searchView=(SearchView) searchItem.getActionView();
         searchView.setOnQueryTextListener(onQueryTextListener);
         return true;
-    }
-
-    @Override
-    protected void onRestart() {
-
-        super.onRestart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -188,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         NoteModel.noteList.clear();
+        NoteModel.curList.clear();
         super.onDestroy();
     }
 
