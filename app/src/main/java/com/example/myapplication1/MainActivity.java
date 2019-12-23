@@ -13,7 +13,6 @@ import android.os.Message;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,12 +57,26 @@ public class MainActivity extends AppCompatActivity {
 
                 holder.setText(R.id.time2,note.getCurTimestr());
                 if(!searching){
-                    holder.setText(R.id.notecontent,NoteModel.cutTextShowed(note.getContent(),0));
+                    holder.setText(R.id.notecontent,cutTextShowed(note.getContent(),0));
                     holder.setText(R.id.notetitle,note.getTitle());
-                }
-                else {
-                    strengthCutText(note.getContent(),searchView.getQuery().toString(),note.getSearchIndexContent(),(TextView) holder.getView(R.id.notecontent));
-                    strengthCutText(note.getTitle(),searchView.getQuery().toString(),note.getSearchIndexTitle(),(TextView) holder.getView(R.id.notetitle));
+                }else {
+                    if (note.getSearchIndexTitle() != -1 && note.getSearchIndexContent() == -1) {
+                        cutAndStrengthenText(note.getTitle(), searchView.getQuery().toString(), note.getSearchIndexTitle(), (TextView) holder.getView(R.id.notetitle));
+                        holder.setText(R.id.notecontent, cutTextShowed(note.getContent(), 0));
+                    }else if (note.getSearchIndexContent() != -1 && note.getSearchIndexTitle() == -1) {
+                        cutAndStrengthenText(note.getContent(), searchView.getQuery().toString(), note.getSearchIndexContent(), (TextView) holder.getView(R.id.notecontent));
+                        holder.setText(R.id.notetitle, note.getTitle());
+                    }else if(note.getSearchIndexTitle() != -1 && note.getSearchIndexContent() != -1){
+                        cutAndStrengthenText(note.getTitle(), searchView.getQuery().toString(), note.getSearchIndexTitle(), (TextView) holder.getView(R.id.notetitle));
+                        cutAndStrengthenText(note.getContent(), searchView.getQuery().toString(), note.getSearchIndexContent(), (TextView) holder.getView(R.id.notecontent));
+                    }else {
+                        holder.setText(R.id.notecontent,cutTextShowed(note.getContent(),0));
+                        holder.setText(R.id.notetitle,note.getTitle());
+                    }
+                    note.setSearchIndexContent(-1);
+                    note.setSearchIndexTitle(-1);
+                    //strengthCutText(note.getContent(),searchView.getQuery().toString(),note.getSearchIndexContent(),(TextView) holder.getView(R.id.notecontent));
+                    //strengthCutText(note.getTitle(),searchView.getQuery().toString(),note.getSearchIndexTitle(),(TextView) holder.getView(R.id.notetitle));
                 }
             }
 
@@ -159,19 +172,59 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private void strengthCutText(String text,String key,int begin,TextView textView){
-        key=key.toLowerCase();
-        String result=NoteModel.cutTextShowed( text,begin);
-        if(text.contains(key)){
-        SpannableStringBuilder ssbuilder = new SpannableStringBuilder(result);
-        ForegroundColorSpan span = new ForegroundColorSpan(getResources().getColor(R.color.dodgerblue));
-        int strengthBegin=result.indexOf(key);
-        int strengthEnd=strengthBegin+key.length();
-        ssbuilder.setSpan(span,strengthBegin,strengthEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        textView.setText(ssbuilder);
-        }else {
-            textView.setText(result);
+    public static String cutTextShowed(String text,int begin) {
+        int n=0;
+        int newBegin=0;
+        int newEnd=text.length();
+        for(int i=1;i<text.length()-begin;i++){
+            char ch=text.charAt(begin+i);
+            if(ch=='\n') n += 20;
+            else n+=1;
+            if (n>200) {
+                newEnd=begin+i;
+                break;
+            }
         }
+        n=0;
+        for(int i=0;i<begin;i++){
+            char ch=text.charAt(begin-i);
+            if(ch=='\n') n += 20;
+            else n+=1;
+            if(n>40) {
+                newBegin=begin-i;
+                break;
+            }
+
+        }
+        return text.substring(newBegin,newEnd);
+    }
+    private void cutAndStrengthenText(String text,String key,int begin,TextView textView){
+        int n=0;
+        int newBegin=0;
+        int newEnd=text.length();
+        for(int i=1;i<text.length()-begin;i++){
+            char ch=text.charAt(begin+i);
+            if(ch=='\n') n += 20;
+            else n+=1;
+            if (n>200) {
+                newEnd=begin+i;
+                break;
+            }
+        }
+        n=0;
+        for(int i=0;i<begin;i++){
+            char ch=text.charAt(begin-i);
+            if(ch=='\n') n += 20;
+            else n+=1;
+            if(n>40) {
+                newBegin=begin-i;
+                break;
+            }
+        }
+        SpannableStringBuilder ssbuilder = new SpannableStringBuilder(text.substring(newBegin,newEnd));
+        ForegroundColorSpan span = new ForegroundColorSpan(getResources().getColor(R.color.dodgerblue));
+        ssbuilder.setSpan(span,begin-newBegin,begin-newBegin+key.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textView.setText(ssbuilder);
     }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu1, menu);
@@ -224,9 +277,6 @@ public class MainActivity extends AppCompatActivity {
     private void loadAll(){
         SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
         Note.setCnt(pref.getLong("num",-1L));
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
                 FileInputStream in;
                 BufferedReader reader = null;
                 try {
@@ -251,8 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 loadNotes();
-            }
-        }).start();
+
 
     }
 
