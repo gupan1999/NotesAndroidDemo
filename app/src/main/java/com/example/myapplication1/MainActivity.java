@@ -73,12 +73,12 @@ public class MainActivity extends AppCompatActivity {
                         holder.setText(R.id.notecontent,cutTextShowed(note.getContent(),0));
                         holder.setText(R.id.notetitle,note.getTitle());
                     }
-                    note.setSearchIndexContent(-1);
-                    note.setSearchIndexTitle(-1);
-                    //strengthCutText(note.getContent(),searchView.getQuery().toString(),note.getSearchIndexContent(),(TextView) holder.getView(R.id.notecontent));
-                    //strengthCutText(note.getTitle(),searchView.getQuery().toString(),note.getSearchIndexTitle(),(TextView) holder.getView(R.id.notetitle));
+
                 }
+                note.setSearchIndexContent(-1);
+                note.setSearchIndexTitle(-1);
             }
+
 
             @Override
             public void setting(final BaseViewHolder holder) {
@@ -130,14 +130,19 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 searching=true;
                 List<Note>tempList=new ArrayList<Note>();
-                newText=newText.toLowerCase();
-                for(Note note:NoteModel.noteList){
-                    String content=note.getContent().toLowerCase();
-                    String title=note.getTitle().toLowerCase();
-                    if(content.contains(newText)||title.contains(newText)){
-                        if(title.contains(newText))note.setSearchIndexTitle(title.indexOf(newText));
-                        if(content.contains(newText)) note.setSearchIndexContent(content.indexOf(newText));
-                        tempList.add(note);
+                if(newText.equals(""))tempList=NoteModel.noteList;
+                else {
+                    newText = newText.toLowerCase();
+                    for (Note note : NoteModel.noteList) {
+                        String content = note.getContent().toLowerCase();
+                        String title = note.getTitle().toLowerCase();
+                        if ( (content.contains(newText) || title.contains(newText))) {
+                            if (title.contains(newText))
+                                note.setSearchIndexTitle(title.indexOf(newText));
+                            if (content.contains(newText))
+                                note.setSearchIndexContent(content.indexOf(newText));
+                            tempList.add(note);
+                        }
                     }
                 }
                 NoteModel.curList=tempList;

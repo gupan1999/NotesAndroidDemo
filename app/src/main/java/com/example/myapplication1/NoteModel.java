@@ -1,20 +1,14 @@
 package com.example.myapplication1;
 
-import android.util.SparseArray;
-import android.view.View;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 
 public class NoteModel {
 
     public static List<Note> noteList = new ArrayList<Note>();
     public static List<Note> curList = new ArrayList<Note>();
-
-
 
     public static void sortByLastEditTime(List<Note>noteList){
          Collections.sort(noteList,new Comparator<Note>() {

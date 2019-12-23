@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -46,6 +47,17 @@ public class NewNoteActivity extends AppCompatActivity {
         savedContent=note.getContent();
         titleET.setText(savedTitle);
         contentET.setText(savedContent);
+        contentET.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_MOVE:
+                        KeyBoardUtil.hideKeyboard(NewNoteActivity.this);
+                        break;
+                }
+                return false;
+            }
+        });
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,6 +77,7 @@ public class NewNoteActivity extends AppCompatActivity {
                             saved=true;
                             finish();
                         }else{
+                            KeyBoardUtil.hideKeyboard(NewNoteActivity.this);
                             save();
                         }
                         return true;

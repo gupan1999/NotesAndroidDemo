@@ -12,8 +12,8 @@ public class Note {
     private String content;
     private static long cnt=-1;
     private String loc;
-    private int searchIndexTitle=-1;
-    private int searchIndexContent=-1;
+    private int searchIndexTitle;
+    private int searchIndexContent;
     private Date curTime;
 
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
@@ -21,6 +21,8 @@ public class Note {
     cnt++;
     loc="note_"+cnt;
     curTime=new Date(System.currentTimeMillis());
+    searchIndexTitle=-1;
+    searchIndexContent=-1;
     }
 
     public int getSearchIndexTitle() {

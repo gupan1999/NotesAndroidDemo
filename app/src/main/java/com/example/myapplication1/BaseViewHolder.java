@@ -28,8 +28,6 @@ public class BaseViewHolder extends RecyclerView.ViewHolder implements View.OnCr
         this.mContext = context;
         mConvertView = itemView;
         mViews = new SparseArray<View>();
-
-        //mConvertView.setOnCreateContextMenuListener(this);
     }
 
 
