@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -26,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,17 +38,16 @@ public class MainActivity extends AppCompatActivity {
     public static BaseRecyclerAdapter<Note>noteBaseRecyclerAdapter;
     private Toolbar toolbar;
     public static SearchView searchView;
-    public static boolean searching=false;
     public static SearchView.OnQueryTextListener onQueryTextListener;
-    SearchView.OnCloseListener onCloseListener;
+    private SearchView.OnCloseListener onCloseListener;
+    public static boolean searching=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar=findViewById(R.id.toolbar);
-
         setSupportActionBar(toolbar);
-
         recyclerView=findViewById(R.id.recyclerview);
         floatingActionButton=findViewById(R.id.floatingActionButton);
 
@@ -94,9 +96,7 @@ public class MainActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent(MainActivity.this,NewNoteActivity.class);
-                intent.putExtra("index",NoteModel.noteList.size()-1);
-                startActivity(intent);
+                startActivity( new Intent(MainActivity.this,NewNoteActivity.class));
             }
         });
         NoteModel.curList=NoteModel.noteList;
@@ -189,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+
         NoteModel.noteList.clear();
         NoteModel.curList.clear();
         super.onDestroy();
@@ -218,38 +219,41 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            Log.d("get_status","saveloc ok");
-
     }
+
     private void loadAll(){
         SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
         Note.setCnt(pref.getLong("num",-1L));
-            FileInputStream in;
-            BufferedReader reader = null;
-            try {
-                in = openFileInput("locs");
-                reader = new BufferedReader(new InputStreamReader(in));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                FileInputStream in;
+                BufferedReader reader = null;
+                try {
+                    in = openFileInput("locs");
+                    reader = new BufferedReader(new InputStreamReader(in));
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    Note note=new Note();
-                    note.setLoc(line);
-                    NoteModel.noteList.add(note);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                        Log.d("file","closed");
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Note note=new Note();
+                        note.setLoc(line);
+                        NoteModel.noteList.add(note);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+                loadNotes();
             }
-        loadNotes();
-        Log.d("get_status","load all ok");
+        }).start();
+
     }
 
     private void loadNotes (){
@@ -279,6 +283,20 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+            }
+        }
+    }
+
+    static class MyHandler extends Handler {
+        WeakReference<AppCompatActivity > mActivityReference;
+        MyHandler(AppCompatActivity activity) {
+            mActivityReference= new WeakReference<AppCompatActivity>(activity);
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            final AppCompatActivity activity = mActivityReference.get();
+            if (activity != null) {
+
             }
         }
     }

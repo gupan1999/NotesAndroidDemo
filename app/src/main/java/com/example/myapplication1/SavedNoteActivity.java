@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,10 +42,7 @@ public class SavedNoteActivity extends AppCompatActivity {
         contentET=findViewById(R.id.editText2);
         time=findViewById(R.id.time);
         index=getIntent().getIntExtra("index",-1);
-
         note = NoteModel.curList.get(index);
-        Toast.makeText(this, note.getTitle(),
-                Toast.LENGTH_SHORT).show();
         time.setText(note.getCurTimestr());
         savedTitle=note.getTitle();
         savedContent=note.getContent();
@@ -164,9 +160,6 @@ public class SavedNoteActivity extends AppCompatActivity {
         NoteModel.noteList.remove(note);
         NoteModel.curList.remove(note);
         MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-
-        //File file =new File(note.getLoc());
-        Log.d("loctest","file:"+note.getLoc());
         boolean result= getDir(note.getLoc(),MODE_PRIVATE).delete();
         if(result) {
             Toast.makeText(this, "删除成功",

@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -86,10 +85,7 @@ public class NewNoteActivity extends AppCompatActivity {
         }
         super.onSaveInstanceState(outState);
     }
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
+
 
     @Override
     protected void onRestart() {
@@ -100,10 +96,6 @@ public class NewNoteActivity extends AppCompatActivity {
         super.onRestart();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
 
     @Override
     protected void onDestroy() {
@@ -136,7 +128,6 @@ public class NewNoteActivity extends AppCompatActivity {
             MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
             saveNote();
         }
-
     }
 
     private void saveNote(){
@@ -163,11 +154,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private void deleteNote(){
         NoteModel.noteList.remove(note);
-
         MainActivity.noteBaseRecyclerAdapter.notifyDataSetChanged();
-        //File file =new File(note.getLoc());
-
-        Log.d("loctest","file:"+note.getLoc());
         boolean result= getDir(note.getLoc(),MODE_PRIVATE).delete();
         if(result) {
             Toast.makeText(this, "删除成功",

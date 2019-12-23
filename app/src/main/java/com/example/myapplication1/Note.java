@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class Note implements Serializable {
+public class Note {
     private String title;
     private String content;
     private static long cnt=-1;
@@ -20,7 +20,6 @@ public class Note implements Serializable {
     public Note() {
     cnt++;
     loc="note_"+cnt;
-    Log.d("loctest",loc);
     curTime=new Date(System.currentTimeMillis());
     }
 
