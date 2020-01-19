@@ -47,17 +47,7 @@ public class NewNoteActivity extends AppCompatActivity {
         savedContent=note.getContent();
         titleET.setText(savedTitle);
         contentET.setText(savedContent);
-        contentET.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_MOVE:
-                        KeyBoardUtil.hideKeyboard(NewNoteActivity.this);
-                        break;
-                }
-                return false;
-            }
-        });
+
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

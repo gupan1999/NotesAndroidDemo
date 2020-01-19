@@ -20,7 +20,7 @@
         android:theme="@style/MyTheme">
         <activity android:name=".NewNoteActivity"></activity>
         <activity android:name=".SavedNoteActivity" />
-        <activity android:name=".EditActivity" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
